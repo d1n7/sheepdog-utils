@@ -60,7 +60,7 @@ apt-show-versions parted yasm libtool'
 [ $debian_version == 9 ] && \
 dpkg_required='automake pkg-config liburcu4 liburcu-dev zlib1g zlib1g-dev
 libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
-apt-show-versions parted yasm libtool autoconf libpq-dev libqb-dev'
+apt-show-versions parted yasm libtool autoconf libpq-dev libqb-dev libcpg-dev libcfg-dev'
 
 
 help () {
@@ -179,7 +179,7 @@ install_sheepdog () {
     fi
     echo "Building..."
     ./autogen.sh > /dev/null && \
-    ./configure --enable-zookeeper --disable-corosync --enable-diskvnodes > /dev/null && \
+    ./configure --disable-zookeeper --enable-corosync --enable-diskvnodes > /dev/null && \
     make -j $cores install > /dev/null
 }
 
