@@ -58,7 +58,7 @@ libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
 apt-show-versions parted yasm libtool'
 
 [ $debian_version == 9 ] && \
-dpkg_required='aptitude automake pkg-config liburcu2 liburcu-dev zlib1g zlib1g-dev
+dpkg_required='automake pkg-config liburcu2 liburcu-dev zlib1g zlib1g-dev
 libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
 apt-show-versions parted yasm libtool'
 
@@ -201,7 +201,7 @@ install_qemu () {
 }
 
 install_zookeeper () {
-    aptitude -y install zookeeper zookeeperd
+    apt-get -y install zookeeper zookeeperd
     get_dpck_list
     check_installed_packages zookeeper zookeeperd || return 2
 }
@@ -276,7 +276,7 @@ configure_zookeeper () {
 }
 
 install_required () {
-    aptitude -y install $dpkg_required
+    apt-get -y install $dpkg_required
     get_dpck_list
     check_installed_packages $dpkg_required || error "${error[0]}"
 }
@@ -288,9 +288,10 @@ install_required () {
 
 # Update debian
 echo 'Updating debian packages list'
-aptitude update > /dev/null
+apt-get update > /dev/null
+export DEBIAN_FRONTEND=noninteractive
 confirm "${question[1]}"
-[ $? -eq 0 ] && aptitude -y safe-upgrade
+[ $? -eq 0 ] && apt-get -y upgrade
 
 cat << EOF
 
@@ -299,9 +300,9 @@ If /usr/src/qemu or /usr/src/sheepdog exist, they will be replaced after trying
 to uninstalling them.
 
 
-Do you whant do prceed?"
+Do you whant do proceed?"
 
-Chosse what you need to install
+Choose what you need to install
 
 1) sheepdog
 2) sheepdog + qemu
