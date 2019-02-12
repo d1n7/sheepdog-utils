@@ -57,6 +57,11 @@ dpkg_required='automake pkg-config liburcu2 liburcu-dev zlib1g zlib1g-dev
 libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
 apt-show-versions parted yasm libtool'
 
+[ $debian_version == 9 ] && \
+dpkg_required='aptitude automake pkg-config liburcu2 liburcu-dev zlib1g zlib1g-dev
+libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
+apt-show-versions parted yasm libtool'
+
 
 help () {
 cat << EOF
