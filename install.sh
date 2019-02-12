@@ -39,7 +39,7 @@ error[2]='It was not possible download the source code'
 error[3]='There are no ip set. Configure your network first.'
 error[4]='This is a wrong ip.'
 question[0]='Would you like to run sheepdog-assistant?'
-question[1]="It's recommended to update your system (aptitude safe-upgrade),
+question[1]="It's recommended to update your system (apt-get upgrade),
 bofore installing sheepdog. Would you like to do it now?"
 
 [ -z "$debian_version" ] && \
@@ -58,9 +58,9 @@ libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
 apt-show-versions parted yasm libtool'
 
 [ $debian_version == 9 ] && \
-dpkg_required='automake pkg-config liburcu2 liburcu-dev zlib1g zlib1g-dev
+dpkg_required='automake pkg-config liburcu4 liburcu-dev zlib1g zlib1g-dev
 libglib2.0-dev libpixman-1-dev groff build-essential git libzookeeper-mt-dev
-apt-show-versions parted yasm libtool'
+apt-show-versions parted yasm libtool autoconf libpq-dev libqb-dev'
 
 
 help () {
@@ -281,6 +281,52 @@ install_required () {
     check_installed_packages $dpkg_required || error "${error[0]}"
 }
 
+install_corosync () {
+    apt install -y corosync
+    if [ ! -d "/var/log/cluster/" ]; then
+        mkdir /var/log/cluster/
+    fi
+    mv /etc/corosync/corosync.conf /etc/corosync/corosync.conf.old
+    EXTINT=`route -n | grep -e '^0.0.0.0' | awk '{print $8}'`;
+    MYIP=`ip addr show $EXTINT | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0' | head -n 1`
+    echo "# Please read the corosync.conf 5 manual page
+            compatibility: whitetank
+            totem {
+            version: 2
+            secauth: off
+            threads: 0
+            # Note, fail_recv_const is only needed if you're 
+            # having problems with corosync crashing under 
+            # heavy sheepdog traffic. This crash is due to 
+            # delayed/resent/misordered multicast packets. 
+            # fail_recv_const: 5000
+            interface {
+                ringnumber: 0
+                bindnetaddr: $MYIP
+                mcastaddr: 226.94.1.1
+                mcastport: 5405
+            }
+            }
+            logging {
+            fileline: off
+            to_stderr: no
+            to_logfile: yes
+            to_syslog: yes
+            # the pathname of the log file
+            logfile: /var/log/cluster/corosync.log
+            debug: off
+            timestamp: on
+            logger_subsys {
+                subsys: AMF
+                debug: off
+            }
+            }
+            amf {
+            mode: disabled
+            }" >> /etc/corosync/corosync.conf
+    service corosync restart
+}
+
 
 # Checking network settings
 [ -z "$ip_list" ] && error "${error[3]}"
@@ -307,7 +353,8 @@ Choose what you need to install
 1) sheepdog
 2) sheepdog + qemu
 3) sheepdog + qemu + zookeeper
-4) help
+4) corosync
+5) help
 
 EOF
 
@@ -346,7 +393,14 @@ case $choise in
     configure_zookeeper
     echo 'Done'
     ;;
-4)  help
+ 4)
+    echo 'Installing required packages'
+    install_required; echo 'Done'
+    echo "Installing corosync..."
+    install_corosync || error "Failed"
+    echo 'Done'
+    ;;   
+5)  help
     exit
     ;;
 *)
